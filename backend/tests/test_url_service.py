@@ -1,7 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-
-from main import app
+from app.main import app
 
 client = TestClient(app)
 
@@ -17,8 +16,8 @@ def test_health_check():
     data = response.json()
     
     assert data["status"] == "healthy"
-    assert data["service"] == "FastAPI Health Service"
-    assert "message" in data
+    assert data["service"] == "Short Link Service is running smoothly."
+    assert data["storage"] == "in-memory (volatile)"
 
 
 def test_root():
@@ -32,9 +31,9 @@ def test_root():
     
     data = response.json()
     
-    assert data["message"] == "Welcome to the Health Check Service!"
+    assert data["message"] == "Welcome to the Short Link Service!"
     assert data["health_check"] == "/health"
-    assert data["documentation"] == "/docs"
+    assert data["docs"] == "/docs"
 
 
 def test_not_found():
