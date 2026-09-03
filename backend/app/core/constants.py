@@ -1,0 +1,9 @@
+# Base58 excludes 0, O, I, l to avoid human readability issues
+BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+
+DEFAULT_SHORT_CODE_LENGTH = 6
+MAX_CUSTOM_ALIAS_LENGTH = 20
+REGEX_SHORT_CODE_PATTERN = r"^[A-HJ-NP-Za-km-z1-9]+$"
+
+# 58^6 = ~38 billion
+MAX_ID_FOR_SIX_CHARS = 58 ** 6
