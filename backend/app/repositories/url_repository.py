@@ -1,6 +1,6 @@
 from datetime import datetime
-from sqlalchemy import select, update
-from sqlalchemy.sql import func
+from sqlalchemy import select, update, delete, func
+from sqlalchemy.sql import func as sql_func
 
 from app.models.url import URL
 from app.repositories.base import BaseRepository
@@ -8,14 +8,11 @@ from app.repositories.base import BaseRepository
 class URLRepository(BaseRepository):
 
     async def get_by_short_code(self, short_code: str) -> URL | None:
-        """
-        Fetch an active, non-expired URL by its short code.
-        Used primarily for redirection (GET /{code}).
-        """
+        """Fetch active, non-expired URL by short code."""
         stmt = select(URL).where(
             URL.short_code == short_code,
             URL.is_active == True,
-            (URL.expires_at.is_(None) | (URL.expires_at > func.now()))
+            (URL.expires_at.is_(None) | (URL.expires_at > sql_func.now()))
         )
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
@@ -24,13 +21,12 @@ class URLRepository(BaseRepository):
         """
         For authenticated users: find an active, non-expired link
         belonging specifically to this user.
-        This ensures clicks are not mixed between different users.
         """
         stmt = select(URL).where(
             URL.original_url == original_url,
             URL.user_id == user_id,
             URL.is_active == True,
-            (URL.expires_at.is_(None) | (URL.expires_at > func.now()))
+            (URL.expires_at.is_(None) | (URL.expires_at > sql_func.now()))
         )
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
@@ -41,6 +37,18 @@ class URLRepository(BaseRepository):
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def count_custom_aliases_by_user(self, user_id: int) -> int:
+        """
+        Count how many custom aliases a user has already created.
+        Used to enforce the free tier limit (max 3 custom aliases).
+        """
+        stmt = select(func.count()).where(
+            URL.user_id == user_id,
+            URL.custom_alias.is_not(None)
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar() or 0
+
     async def create_url(
         self,
         short_code: str,
@@ -49,7 +57,7 @@ class URLRepository(BaseRepository):
         user_id: int | None = None,
         expires_at: datetime | None = None
     ) -> URL:
-        """Create a new URL record. short_code is a placeholder initially."""
+        """Create a new URL record."""
         new_url = URL(
             short_code=short_code,
             original_url=original_url,
@@ -60,31 +68,21 @@ class URLRepository(BaseRepository):
         return await self.create(new_url)
 
     async def update_short_code(self, url_id: int, new_short_code: str) -> None:
-        """
-        Update the short code after saving to get the DB-generated ID.
-        This is crucial for our Base58 encoding strategy.
-        """
+        """Update short code after DB generates the ID."""
         stmt = update(URL).where(URL.id == url_id).values(short_code=new_short_code)
         await self.session.execute(stmt)
         await self.session.commit()
 
     async def increment_clicks(self, short_code: str) -> None:
-        """
-        Atomic increment of the click counter.
-        Using SQL 'UPDATE ... SET clicks = clicks + 1' avoids race conditions
-        in high-concurrency environments.
-        """
+        """Atomic increment of click counter."""
         stmt = update(URL).where(URL.short_code == short_code).values(clicks=URL.clicks + 1)
         await self.session.execute(stmt)
         await self.session.commit()
 
     async def delete_expired_anonymous_urls(self) -> int:
-        """
-        Permanently delete expired links created by anonymous users.
-        (Reserved for scheduled cleanup tasks - to be used later).
-        """
+        """Permanently delete expired anonymous links (for scheduled cleanup)."""
         stmt = delete(URL).where(
-            URL.expires_at < func.now(),
+            URL.expires_at < sql_func.now(),
             URL.user_id.is_(None)
         )
         result = await self.session.execute(stmt)
