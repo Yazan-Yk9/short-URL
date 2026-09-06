@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone, timedelta
 
 from app.core.constants import ANONYMOUS_URL_EXPIRE_DAYS
@@ -10,11 +11,11 @@ from app.core.exceptions import (
 from app.core.utils import validate_url, generate_unique_short_code_from_id
 from app.repositories.url_repository import URLRepository
 
+logger = logging.getLogger(__name__)
 
 class URLService:
     """Core business logic for URL shortening and retrieval."""
 
-    # Maximum allowed custom aliases for free users
     MAX_FREE_CUSTOM_ALIASES = 3
 
     def __init__(self, repository: URLRepository):
@@ -26,37 +27,32 @@ class URLService:
         user_id: int | None = None,
         custom_alias: str | None = None
     ):
-        """
-        Creates a shortened URL based on user authentication status and input.
-        - Anonymous: auto-generated, expires in 7 days, no tracking.
-        - Authenticated + no alias: returns existing or creates permanent.
-        - Authenticated + alias: enforces 3-alias limit, expires in 7 days (trial).
-        """
-        # 1. Validate URL format (redundant safety check, though Schema already does it)
+
+        logger.debug(f"Creating short URL: original={original_url}, user_id={user_id}, alias={custom_alias}")
+        # 1. Validate URL format
         if not validate_url(original_url):
             raise InvalidURLException()
 
-        # ------------------------------------------------------------
-        # 2. CASE: Authenticated User (user_id is provided)
-        # ------------------------------------------------------------
+        # 2. Authenticated user flow
         if user_id is not None:
-
-            # --- Sub-case A: Custom Alias provided ---
+            # --- Custom alias provided ---
             if custom_alias:
-                # a. Check if alias is already taken globally
+                # Check alias availability
                 existing_alias = await self.repository.get_by_custom_alias(custom_alias)
                 if existing_alias:
+                    logger.warning(f"Custom alias '{custom_alias}' already taken")
                     raise CustomAliasTakenException(custom_alias)
 
-                # b. Check user's current custom alias count
+                # Check free tier limit (max 3)
                 current_count = await self.repository.count_custom_aliases_by_user(user_id)
                 if current_count >= self.MAX_FREE_CUSTOM_ALIASES:
+                    logger.warning(f"User {user_id} exceeded custom alias limit ({current_count})")
                     raise CustomAliasLimitExceededException()
 
-                # c. Create new link with custom alias
+                # Create link with 7-day expiry for trial
                 expires_at = datetime.now(timezone.utc) + timedelta(days=ANONYMOUS_URL_EXPIRE_DAYS)
                 new_url = await self.repository.create_url(
-                    short_code="",  # Placeholder, we'll use custom_alias as short_code
+                    short_code="",
                     original_url=original_url,
                     custom_alias=custom_alias,
                     user_id=user_id,
@@ -64,16 +60,18 @@ class URLService:
                 )
                 # For custom aliases, the short_code IS the alias itself
                 await self.repository.update_short_code(new_url.id, custom_alias)
+                logger.info(f"Created custom alias link: {custom_alias} for user {user_id}")
                 return new_url
 
-            # --- Sub-case B: No custom alias (Standard shortening) ---
+            # --- No custom alias: standard shortening ---
             else:
                 # Check if this user already shortened this URL
                 existing = await self.repository.get_by_user_and_url(original_url, user_id)
                 if existing:
+                    logger.info(f"Reused existing link for user {user_id}: {existing.short_code}")
                     return existing
 
-                # Create permanent link for authenticated user
+                # Create permanent link (no expiry)
                 new_url = await self.repository.create_url(
                     short_code="",
                     original_url=original_url,
@@ -81,20 +79,19 @@ class URLService:
                     user_id=user_id,
                     expires_at=None
                 )
-                # Generate Base58 short code from the DB-generated ID
                 short_code = generate_unique_short_code_from_id(new_url.id)
                 await self.repository.update_short_code(new_url.id, short_code)
+                logger.info(f"Created permanent link for user {user_id}: {short_code}")
                 return new_url
 
-        # ------------------------------------------------------------
-        # 3. CASE: Anonymous User (user_id is None)
-        # ------------------------------------------------------------
+        # 3. Anonymous user flow
         else:
-            # a. Block custom aliases entirely for anonymous users
+            # Block custom aliases
             if custom_alias:
+                logger.warning("Anonymous user attempted to use custom alias")
                 raise AnonymousAliasNotAllowedException()
 
-            # b. No duplicate check. Always create a new link with 7-day expiry.
+            # Create link with 7-day expiry
             expires_at = datetime.now(timezone.utc) + timedelta(days=ANONYMOUS_URL_EXPIRE_DAYS)
             new_url = await self.repository.create_url(
                 short_code="",
@@ -103,22 +100,22 @@ class URLService:
                 user_id=None,
                 expires_at=expires_at
             )
-            # Generate Base58 short code from the DB-generated ID
             short_code = generate_unique_short_code_from_id(new_url.id)
             await self.repository.update_short_code(new_url.id, short_code)
+            logger.info(f"Created anonymous link: {short_code} (expires at {expires_at})")
             return new_url
 
+        # Fallback (should never be reached)
+        raise RuntimeError("Unexpected state in create_short_url")
+
     async def get_original_url(self, short_code: str):
-        """
-        Retrieves the original URL for redirection.
-        Increments click counter ONLY if the link belongs to a registered user.
-        """
         url_data = await self.repository.get_by_short_code(short_code)
         if not url_data:
+            logger.warning(f"Short code not found: {short_code}")
             return None
 
-        # Track clicks only for authenticated users (user_id is not None)
+        # Track clicks only for authenticated users
         if url_data.user_id is not None:
             await self.repository.increment_clicks(short_code)
-
+            logger.debug(f"Incremented clicks for {short_code} (user {url_data.user_id})")
         return url_data
