@@ -32,3 +32,15 @@ class InvalidShortCodeFormatException(URLShortenerException):
         self.short_code = short_code
         self.message = message or f"Short code '{short_code}' contains invalid characters."
         super().__init__(self.message)
+
+class AnonymousAliasNotAllowedException(URLShortenerException):
+    """Raised when an anonymous user tries to use a custom alias."""
+    def __init__(self, message: str = "Custom aliases are only available for registered users. Please sign up."):
+        self.message = message
+        super().__init__(self.message)
+
+class CustomAliasLimitExceededException(URLShortenerException):
+    """Raised when a free user exceeds the maximum of 3 custom aliases."""
+    def __init__(self, message: str = "Maximum of 3 custom aliases reached. Upgrade to Pro for unlimited aliases."):
+        self.message = message
+        super().__init__(self.message)
