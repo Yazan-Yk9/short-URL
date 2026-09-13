@@ -12,7 +12,18 @@ from app.core.exceptions import (
     AnonymousAliasNotAllowedException,
     CustomAliasLimitExceededException,
     InvalidURLException,
+<<<<<<< HEAD
+    UserAlreadyExistsException,
+    InvalidCredentialsException,
+    ApiKeyNotFoundException,
+    InvalidApiKeyException,
+    ApiKeyLimitExceededException,
+    QuotaExceededException,
 )
+from app.models import URL, User, ApiKey
+=======
+)
+>>>>>>> d2e479d03b956f1d7f60a89bc428ef5d76e7a722
 from app.db.base import Base
 from app.db.session import engine
 from app.core.logging import setup_logging
@@ -105,6 +116,44 @@ async def base_url_exception_handler(request, exc: URLShortenerException):
         content={"detail": exc.message}
     )
 
+<<<<<<< HEAD
+@app.exception_handler(UserAlreadyExistsException)
+async def user_exists_handler(request, exc: UserAlreadyExistsException):
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT,
+        content={"detail": exc.message, "email": exc.email},
+    )
+
+
+@app.exception_handler(InvalidCredentialsException)
+async def invalid_credentials_handler(request, exc: InvalidCredentialsException):
+    return JSONResponse(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        content={"detail": exc.message},
+    )
+
+@app.exception_handler(ApiKeyNotFoundException)
+async def api_key_not_found_handler(request, exc: ApiKeyNotFoundException):
+    return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"detail": exc.message})
+
+
+@app.exception_handler(InvalidApiKeyException)
+async def invalid_api_key_handler(request, exc: InvalidApiKeyException):
+    return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={"detail": exc.message})
+
+
+@app.exception_handler(ApiKeyLimitExceededException)
+async def api_key_limit_handler(request, exc: ApiKeyLimitExceededException):
+    return JSONResponse(status_code=status.HTTP_403_FORBIDDEN, content={"detail": exc.message})
+
+
+@app.exception_handler(QuotaExceededException)
+async def quota_exceeded_handler(request, exc: QuotaExceededException):
+    return JSONResponse(status_code=status.HTTP_429_TOO_MANY_REQUESTS, content={"detail": exc.message})
+
+
+=======
+>>>>>>> d2e479d03b956f1d7f60a89bc428ef5d76e7a722
 
 # ============================================================
 # Include v1 API router
