@@ -1,10 +1,6 @@
 import os
 
 def pytest_configure(config):
-    """
-    تُنفذ هذه الدالة تلقائياً قبل بدء جمع الاختبارات (Collection).
-    نضبط فيها متغيرات البيئة الخاصة بالاختبارات لتتجاوز أي ملف .env.
-    """
     os.environ["ENVIRONMENT"] = "test"
     os.environ["DEBUG"] = "True"
     os.environ["DATABASE_URL"] = "postgresql+asyncpg://test_user:test_pass@localhost:5432/test_db"
