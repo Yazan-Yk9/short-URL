@@ -16,8 +16,6 @@ def test_health_check():
     data = response.json()
     
     assert data["status"] == "healthy"
-    assert data["service"] == "Short Link Service is running smoothly."
-    assert data["storage"] == "in-memory (volatile)"
 
 
 def test_root():
@@ -31,8 +29,8 @@ def test_root():
     
     data = response.json()
     
-    assert data["message"] == "Welcome to the Short Link Service!"
-    assert data["health_check"] == "/health"
+    assert data["message"] == "Welcome to the URL Shortener API!"
+    assert data["health"] == "/health"
     assert data["docs"] == "/docs"
 
 

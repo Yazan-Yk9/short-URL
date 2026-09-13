@@ -12,6 +12,8 @@ from app.core.exceptions import (
     AnonymousAliasNotAllowedException,
     CustomAliasLimitExceededException,
     InvalidURLException,
+    UserAlreadyExistsException,
+    InvalidCredentialsException,
 )
 from app.models import URL, User, ApiKey
 from app.db.base import Base
@@ -105,6 +107,22 @@ async def base_url_exception_handler(request, exc: URLShortenerException):
         status_code=status.HTTP_400_BAD_REQUEST,
         content={"detail": exc.message}
     )
+
+@app.exception_handler(UserAlreadyExistsException)
+async def user_exists_handler(request, exc: UserAlreadyExistsException):
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT,
+        content={"detail": exc.message, "email": exc.email},
+    )
+
+
+@app.exception_handler(InvalidCredentialsException)
+async def invalid_credentials_handler(request, exc: InvalidCredentialsException):
+    return JSONResponse(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        content={"detail": exc.message},
+    )
+
 
 
 # ============================================================
