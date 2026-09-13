@@ -17,6 +17,10 @@ from app.core.exceptions import (
     UserAlreadyExistsException,
     InvalidCredentialsException,
     InvalidTokenException,
+    ApiKeyNotFoundException,
+    InvalidApiKeyException,
+    ApiKeyLimitExceededException,
+    QuotaExceededException,
 )
 from app.core.utils import (
     encode_base58,
@@ -31,6 +35,8 @@ from app.core.security import (
     create_access_token,
     decode_access_token,
     create_refresh_token,
+    generate_api_key,
+    hash_api_key,
 )
 
 __all__ = [
@@ -50,6 +56,10 @@ __all__ = [
     "UserAlreadyExistsException",
     "InvalidCredentialsException",
     "InvalidTokenException",
+    "ApiKeyNotFoundException",
+    "InvalidApiKeyException",
+    "ApiKeyLimitExceededException",
+    "QuotaExceededException",
     "encode_base58",
     "decode_base58",
     "validate_url",
@@ -60,4 +70,6 @@ __all__ = [
     "create_access_token",
     "decode_access_token",
     "create_refresh_token",
+    "generate_api_key",
+    "hash_api_key",
 ]

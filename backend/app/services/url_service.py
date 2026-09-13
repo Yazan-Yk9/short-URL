@@ -1,4 +1,5 @@
 import logging
+import secrets
 from datetime import datetime, timezone, timedelta
 
 from app.core.constants import ANONYMOUS_URL_EXPIRE_DAYS
@@ -20,6 +21,10 @@ class URLService:
 
     def __init__(self, repository: URLRepository):
         self.repository = repository
+
+    def _generate_temp_code(self) -> str:
+        """Generate a unique temporary placeholder."""
+        return f"tmp_{secrets.token_hex(3)}"
 
     async def create_short_url(
         self,
@@ -52,7 +57,7 @@ class URLService:
                 # Create link with 7-day expiry for trial
                 expires_at = datetime.now(timezone.utc) + timedelta(days=ANONYMOUS_URL_EXPIRE_DAYS)
                 new_url = await self.repository.create_url(
-                    short_code="",
+                    short_code=self._generate_temp_code(),
                     original_url=original_url,
                     custom_alias=custom_alias,
                     user_id=user_id,
@@ -73,7 +78,7 @@ class URLService:
 
                 # Create permanent link (no expiry)
                 new_url = await self.repository.create_url(
-                    short_code="",
+                    short_code=self._generate_temp_code(),
                     original_url=original_url,
                     custom_alias=None,
                     user_id=user_id,
@@ -94,7 +99,7 @@ class URLService:
             # Create link with 7-day expiry
             expires_at = datetime.now(timezone.utc) + timedelta(days=ANONYMOUS_URL_EXPIRE_DAYS)
             new_url = await self.repository.create_url(
-                short_code="",
+                short_code=self._generate_temp_code(),
                 original_url=original_url,
                 custom_alias=None,
                 user_id=None,

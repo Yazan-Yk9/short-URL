@@ -12,7 +12,7 @@ class ApiKey(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     
     key_hash = Column(String(255), unique=True, index=True, nullable=False)
-    key_prefix = Column(String(10), nullable=False)  # (e.g., "sk_live_")
+    key_prefix = Column(String(20), nullable=False)  # (e.g., "ark_live_")
     name = Column(String(100), nullable=False)
     
     is_active = Column(Boolean, default=True, nullable=False)

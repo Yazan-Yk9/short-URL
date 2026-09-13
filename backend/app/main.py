@@ -14,6 +14,10 @@ from app.core.exceptions import (
     InvalidURLException,
     UserAlreadyExistsException,
     InvalidCredentialsException,
+    ApiKeyNotFoundException,
+    InvalidApiKeyException,
+    ApiKeyLimitExceededException,
+    QuotaExceededException,
 )
 from app.models import URL, User, ApiKey
 from app.db.base import Base
@@ -122,6 +126,25 @@ async def invalid_credentials_handler(request, exc: InvalidCredentialsException)
         status_code=status.HTTP_401_UNAUTHORIZED,
         content={"detail": exc.message},
     )
+
+@app.exception_handler(ApiKeyNotFoundException)
+async def api_key_not_found_handler(request, exc: ApiKeyNotFoundException):
+    return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"detail": exc.message})
+
+
+@app.exception_handler(InvalidApiKeyException)
+async def invalid_api_key_handler(request, exc: InvalidApiKeyException):
+    return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={"detail": exc.message})
+
+
+@app.exception_handler(ApiKeyLimitExceededException)
+async def api_key_limit_handler(request, exc: ApiKeyLimitExceededException):
+    return JSONResponse(status_code=status.HTTP_403_FORBIDDEN, content={"detail": exc.message})
+
+
+@app.exception_handler(QuotaExceededException)
+async def quota_exceeded_handler(request, exc: QuotaExceededException):
+    return JSONResponse(status_code=status.HTTP_429_TOO_MANY_REQUESTS, content={"detail": exc.message})
 
 
 

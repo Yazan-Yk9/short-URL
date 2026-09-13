@@ -3,7 +3,8 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import RedirectResponse
 
-from app.api.deps import get_current_user_optional, get_url_service
+from app.api.deps import get_url_service, get_user_from_jwt_or_api_key
+
 from app.core.exceptions import (
     AnonymousAliasNotAllowedException,
     CustomAliasLimitExceededException,
@@ -21,7 +22,7 @@ router = APIRouter()
 @router.post("/shorten", response_model=URLResponse, status_code=status.HTTP_201_CREATED)
 async def shorten_url(
     payload: URLCreate,
-    current_user: User | None = Depends(get_current_user_optional),
+    current_user: User | None = Depends(get_user_from_jwt_or_api_key),
     service: URLService = Depends(get_url_service),
 ):
     """Shorten a URL. Anonymous users get 7-day links; authenticated users get permanent links."""
