@@ -3,6 +3,7 @@ from typing import Dict, Any, Optional
 
 import jwt
 from jwt.exceptions import PyJWTError
+<<<<<<< HEAD
 from pwdlib import PasswordHash
 
 from app.core.config import settings
@@ -61,14 +62,35 @@ def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta]
 
 def decode_access_token(token: str) -> Dict[str, Any]:
     """Decode and validate a JWT. Raises InvalidTokenException if invalid/expired."""
+=======
+
+from app.core.config import settings
+from app.core.exceptions import URLShortenerException
+
+class InvalidTokenException(URLShortenerException):
+    pass
+
+def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
+def decode_access_token(token: str) -> Dict[str, Any]:
+>>>>>>> d2e479d03b956f1d7f60a89bc428ef5d76e7a722
     try:
         return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     except PyJWTError as e:
         raise InvalidTokenException(f"Invalid or expired token: {str(e)}")
 
+<<<<<<< HEAD
 
 def create_refresh_token(data: Dict[str, Any]) -> str:
     """Generate a long-lived refresh token with a distinct 'type' claim."""
+=======
+def create_refresh_token(data: Dict[str, Any]) -> str:
+    """Generates a long-lived token; includes 'type' claim to distinguish from access tokens."""
+>>>>>>> d2e479d03b956f1d7f60a89bc428ef5d76e7a722
     expire = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     to_encode = data.copy()
     to_encode.update({"exp": expire, "type": "refresh"})

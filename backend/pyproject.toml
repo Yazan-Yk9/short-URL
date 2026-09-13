@@ -17,10 +17,14 @@ dependencies = [
     "pydantic-settings (>=2.15.0,<3.0.0)",
     "python-dotenv (>=1.2.3,<2.0.0)",
     "redis (>=8.1.0,<9.0.0)",
+<<<<<<< HEAD
     "pyjwt (>=2.13.0,<3.0.0)",
     "python-jose[cryptography] (>=3.5.0,<4.0.0)",
     "email-validator (>=2.3.0,<3.0.0)",
     "pwdlib[argon2] (>=0.3.1,<0.4.0)"
+=======
+    "pyjwt (>=2.13.0,<3.0.0)"
+>>>>>>> d2e479d03b956f1d7f60a89bc428ef5d76e7a722
 ]
 
 [tool.poetry]

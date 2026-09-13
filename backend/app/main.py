@@ -12,6 +12,7 @@ from app.core.exceptions import (
     AnonymousAliasNotAllowedException,
     CustomAliasLimitExceededException,
     InvalidURLException,
+<<<<<<< HEAD
     UserAlreadyExistsException,
     InvalidCredentialsException,
     ApiKeyNotFoundException,
@@ -20,6 +21,9 @@ from app.core.exceptions import (
     QuotaExceededException,
 )
 from app.models import URL, User, ApiKey
+=======
+)
+>>>>>>> d2e479d03b956f1d7f60a89bc428ef5d76e7a722
 from app.db.base import Base
 from app.db.session import engine
 from app.core.logging import setup_logging
@@ -112,6 +116,7 @@ async def base_url_exception_handler(request, exc: URLShortenerException):
         content={"detail": exc.message}
     )
 
+<<<<<<< HEAD
 @app.exception_handler(UserAlreadyExistsException)
 async def user_exists_handler(request, exc: UserAlreadyExistsException):
     return JSONResponse(
@@ -147,6 +152,8 @@ async def quota_exceeded_handler(request, exc: QuotaExceededException):
     return JSONResponse(status_code=status.HTTP_429_TOO_MANY_REQUESTS, content={"detail": exc.message})
 
 
+=======
+>>>>>>> d2e479d03b956f1d7f60a89bc428ef5d76e7a722
 
 # ============================================================
 # Include v1 API router
