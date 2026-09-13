@@ -44,3 +44,23 @@ class CustomAliasLimitExceededException(URLShortenerException):
     def __init__(self, message: str = "Maximum of 3 custom aliases reached. Upgrade to Pro for unlimited aliases."):
         self.message = message
         super().__init__(self.message)
+
+class UserAlreadyExistsException(URLShortenerException):
+    """Raised when registering with an email that already exists."""
+    def __init__(self, email: str, message: str | None = None):
+        self.email = email
+        self.message = message or f"User with email '{email}' already exists."
+        super().__init__(self.message)
+
+
+class InvalidCredentialsException(URLShortenerException):
+    """Raised when login credentials are incorrect."""
+    def __init__(self, message: str = "Invalid email or password."):
+        self.message = message
+        super().__init__(self.message)
+
+class InvalidTokenException(URLShortenerException):
+    """Raised when JWT decoding fails or the token is expired."""
+    def __init__(self, message: str = "Invalid or expired token."):
+        self.message = message
+        super().__init__(self.message)

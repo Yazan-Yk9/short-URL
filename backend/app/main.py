@@ -13,6 +13,7 @@ from app.core.exceptions import (
     CustomAliasLimitExceededException,
     InvalidURLException,
 )
+from app.models import URL, User, ApiKey
 from app.db.base import Base
 from app.db.session import engine
 from app.core.logging import setup_logging

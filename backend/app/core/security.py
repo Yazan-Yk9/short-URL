@@ -6,15 +6,10 @@ from jwt.exceptions import PyJWTError
 from pwdlib import PasswordHash
 
 from app.core.config import settings
-from app.core.exceptions import URLShortenerException
+from app.core.exceptions import URLShortenerException, InvalidTokenException
 
 
 password_hash = PasswordHash.recommended()
-
-
-class InvalidTokenException(URLShortenerException):
-    """Raised when JWT decoding fails or token is expired."""
-    pass
 
 
 def hash_password(password: str) -> str:
