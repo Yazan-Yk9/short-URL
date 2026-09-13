@@ -1,19 +1,13 @@
 import pytest
 from app.core.exceptions import (
-<<<<<<< HEAD
     # Core
     URLShortenerException,
     InvalidURLException,
     # URL-related
-=======
-    URLShortenerException,
-    InvalidURLException,
->>>>>>> d2e479d03b956f1d7f60a89bc428ef5d76e7a722
     ShortCodeNotFoundException,
     CustomAliasTakenException,
     URLExpiredException,
     InvalidShortCodeFormatException,
-<<<<<<< HEAD
     AnonymousAliasNotAllowedException,
     CustomAliasLimitExceededException,
     # User/Auth
@@ -25,8 +19,6 @@ from app.core.exceptions import (
     InvalidApiKeyException,
     ApiKeyLimitExceededException,
     QuotaExceededException,
-=======
->>>>>>> d2e479d03b956f1d7f60a89bc428ef5d76e7a722
 )
 
 
@@ -66,7 +58,6 @@ def test_custom_exceptions_inherit_base():
     assert isinstance(CustomAliasTakenException("x"), URLShortenerException)
     assert isinstance(URLExpiredException("x"), URLShortenerException)
     assert isinstance(InvalidShortCodeFormatException("x"), URLShortenerException)
-<<<<<<< HEAD
 
 def test_user_already_exists_exception_context():
     exc = UserAlreadyExistsException("test@example.com")
@@ -112,5 +103,3 @@ def test_anonymous_alias_exception_default():
 def test_custom_alias_limit_exception_default():
     exc = CustomAliasLimitExceededException()
     assert "3" in exc.message
-=======
->>>>>>> d2e479d03b956f1d7f60a89bc428ef5d76e7a722
