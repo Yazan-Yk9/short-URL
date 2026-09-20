@@ -38,6 +38,8 @@ from app.core.security import (
     generate_api_key,
     hash_api_key,
 )
+from app.core.geoip import lookup_country, close_reader, get_reader
+
 __all__ = [
     "settings",
     "BASE58_ALPHABET",
@@ -71,4 +73,7 @@ __all__ = [
     "create_refresh_token",
     "generate_api_key",
     "hash_api_key",
+    "lookup_country",
+    "close_reader",
+    "get_reader",
 ]

@@ -1,10 +1,13 @@
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
 
-from app.api.deps import get_url_service, get_user_from_jwt_or_api_key
-
+from app.api.deps import (
+    get_analytics_service,
+    get_url_service,
+    get_user_from_jwt_or_api_key,
+)
 from app.core.exceptions import (
     AnonymousAliasNotAllowedException,
     CustomAliasLimitExceededException,
@@ -13,6 +16,7 @@ from app.core.exceptions import (
 )
 from app.models.user import User
 from app.schemas.url import URLCreate, URLResponse
+from app.services.analytics_service import AnalyticsService
 from app.services.url_service import URLService
 
 logger = logging.getLogger(__name__)
@@ -33,7 +37,10 @@ async def shorten_url(
             custom_alias=payload.custom_alias,
         )
         if result is None:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Service returned None")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Service returned None unexpectedly",
+            )
         return result
     except InvalidURLException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
@@ -48,10 +55,28 @@ async def shorten_url(
 @router.get("/{short_code}", status_code=status.HTTP_302_FOUND)
 async def redirect_to_original(
     short_code: str,
+    request: Request,
+    background_tasks: BackgroundTasks,
     service: URLService = Depends(get_url_service),
+    analytics: AnalyticsService = Depends(get_analytics_service),
 ):
-    """Redirect to the original URL. Clicks are tracked for authenticated owners only."""
+    """
+    Redirect to the original URL.
+    Analytics are logged in the background (does not slow down the redirect).
+    """
     url_data = await service.get_original_url(short_code)
     if not url_data:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Short code not found or expired.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Short code not found or expired.",
+        )
+
+    # Fire-and-forget analytics AFTER the response is sent
+    background_tasks.add_task(
+        analytics.log_click_from_request,
+        request=request,
+        url_id=url_data.id,
+        short_code=url_data.short_code,
+    )
+
     return RedirectResponse(url=url_data.original_url, status_code=status.HTTP_302_FOUND)

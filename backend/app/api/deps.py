@@ -16,7 +16,8 @@ from app.repositories.user_repository import UserRepository
 from app.services.api_key_service import ApiKeyService
 from app.services.auth_service import AuthService
 from app.services.url_service import URLService
-
+from app.repositories.analytics_repository import AnalyticsRepository
+from app.services.analytics_service import AnalyticsService
 
 # Extracts 'Authorization: Bearer <token>' (optional, no auto-error)
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -138,3 +139,7 @@ async def get_user_from_jwt_or_api_key(
 
 
     return None
+
+async def get_analytics_service(db: AsyncSession = Depends(get_db)) -> AnalyticsService:
+    """Factory for AnalyticsService with injected repository."""
+    return AnalyticsService(AnalyticsRepository(db))
