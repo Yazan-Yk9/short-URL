@@ -23,21 +23,32 @@ from app.models import URL, User, ApiKey, ClickAnalytics
 from app.db.base import Base
 from app.db.session import engine
 from app.core.logging import setup_logging
+from app.core.geoip import get_reader, close_reader
 
 setup_logging()
 
 # ============================================================
 # Lifespan: creates tables on startup, closes connections on shutdown
-# ============================================================
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Startup
     if settings.ENVIRONMENT == "development":
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         print("✅ Database tables initialized.")
+
+    # Warm up GeoIP reader
+    if get_reader():
+        print("✅ GeoIP database loaded.")
+    else:
+        print("⚠️  GeoIP database not found. Country lookup disabled.")
+
     yield
+
+    # Shutdown
+    close_reader()
     await engine.dispose()
-    print("🛑 Database connections closed.")
+    print("🛑 Shutdown complete.")
 
 
 # ============================================================
