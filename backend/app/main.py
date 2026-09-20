@@ -19,7 +19,7 @@ from app.core.exceptions import (
     ApiKeyLimitExceededException,
     QuotaExceededException,
 )
-from app.models import URL, User, ApiKey
+from app.models import URL, User, ApiKey, ClickAnalytics
 from app.db.base import Base
 from app.db.session import engine
 from app.core.logging import setup_logging
