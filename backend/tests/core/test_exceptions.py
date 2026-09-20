@@ -1,20 +1,16 @@
 import pytest
 from app.core.exceptions import (
-    # Core
     URLShortenerException,
     InvalidURLException,
-    # URL-related
     ShortCodeNotFoundException,
     CustomAliasTakenException,
     URLExpiredException,
     InvalidShortCodeFormatException,
     AnonymousAliasNotAllowedException,
     CustomAliasLimitExceededException,
-    # User/Auth
     UserAlreadyExistsException,
     InvalidCredentialsException,
     InvalidTokenException,
-    # API Keys
     ApiKeyNotFoundException,
     InvalidApiKeyException,
     ApiKeyLimitExceededException,
